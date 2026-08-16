@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="基于中医九种体质分类的自测工具，提供体质判定、个性化调养建议、历史记录与可视化报告">
+  <title>体质自测 · 中医九种体质</title>
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Chart.js 图表库 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- html2canvas 截图导出 -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <!-- jsPDF 生成PDF -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <!-- 顶部导航 -->
+  <header class="app-header">
+    <div class="container header-inner">
+      <div class="logo" id="logoHome">
+        <span class="logo-icon">🌿</span>
+        <span class="logo-text">体质自测</span>
+      </div>
+      <nav class="nav-tabs">
+        <button class="nav-tab" data-view="home">首页</button>
+        <button class="nav-tab" data-view="quiz">开始自测</button>
+        <button class="nav-tab" data-view="history">历史记录</button>
+        <button class="nav-tab" data-view="about">关于</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- 视图：首页 -->
+    <section class="view" id="view-home">
+      <div class="hero">
+        <div class="hero-content">
+          <h1 class="hero-title">了解你的<span class="accent">体质</span></h1>
+          <p class="hero-subtitle">基于中医九种体质分类标准，45 题科学自测，了解你的体质偏颇，获取个性化调养建议。</p>
+          <div class="hero-actions">
+            <button class="btn btn-primary btn-lg" id="btnStart">开始自测</button>
+            <button class="btn btn-outline btn-lg" id="btnAbout">了解原理</button>
+          </div>
+          <div class="hero-stats">
+            <div class="stat"><span class="stat-num">9</span><span class="stat-label">种体质</span></div>
+            <div class="stat"><span class="stat-num">45</span><span class="stat-label">道题目</span></div>
+            <div class="stat"><span class="stat-num">5</span><span class="stat-label">分钟完成</span></div>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <div class="constitution-grid" id="constitutionGrid"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 视图：答题 -->
+    <section class="view hidden" id="view-quiz">
+      <div class="quiz-header">
+        <div class="quiz-progress">
+          <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+          <div class="progress-text">
+            <span>第 <span id="qCurrent">1</span> / <span id="qTotal">45</span> 题</span>
+            <span class="progress-percent" id="qPercent">2%</span>
+          </div>
+        </div>
+      </div>
+      <div class="quiz-card" id="quizCard">
+        <!-- 题目由 JS 渲染 -->
+      </div>
+      <div class="quiz-nav">
+        <button class="btn btn-outline" id="btnPrev">上一题</button>
+        <button class="btn btn-primary" id="btnNext" disabled>下一题</button>
+      </div>
+    </section>
+
+    <!-- 视图：结果 -->
+    <section class="view hidden" id="view-result">
+      <div class="result-actions top">
+        <button class="btn btn-outline" id="btnBackHome">返回首页</button>
+        <div class="result-actions-right">
+          <button class="btn btn-outline" id="btnShare">分享结果</button>
+          <button class="btn btn-primary" id="btnExport">导出报告</button>
+        </div>
+      </div>
+      <div id="resultContent" class="result-content">
+        <!-- 结果由 JS 渲染 -->
+      </div>
+      <div class="result-actions">
+        <button class="btn btn-outline" id="btnRetry">重新测试</button>
+        <button class="btn btn-primary" id="btnViewHistory">查看历史</button>
+      </div>
+    </section>
+
+    <!-- 视图：历史记录 -->
+    <section class="view hidden" id="view-history">
+      <div class="section-title">
+        <h2>历史记录</h2>
+        <button class="btn btn-danger-outline" id="btnClearHistory">清空记录</button>
+      </div>
+      <div class="history-summary" id="historySummary"></div>
+      <div class="history-trend-wrap">
+        <h3 class="block-title">体质变化趋势</h3>
+        <div class="chart-wrap"><canvas id="trendChart" height="120"></canvas></div>
+      </div>
+      <div class="history-list" id="historyList"></div>
+    </section>
+
+    <!-- 视图：关于 -->
+    <section class="view hidden" id="view-about">
+      <div class="about-card">
+        <h2>关于本工具</h2>
+        <p>本工具基于中华中医药学会发布的《中医体质分类与判定》（ZYYXH/T157-2009）标准制定，通过 45 道核心问题评估您的中医体质类型。</p>
+        <h3>九种体质</h3>
+        <div class="about-grid" id="aboutGrid"></div>
+        <div class="disclaimer">
+          <strong>免责声明：</strong> 本工具仅供健康自测参考，不构成医疗诊断。如有健康问题，请咨询专业中医师。体质可随生活方式、环境、年龄变化，建议定期复测。
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <div class="container">
+      <p>体质自测 · 基于中医九种体质分类标准 · 仅供健康参考</p>
+    </div>
+  </footer>
+
+  <!-- Toast 提示 -->
+  <div class="toast" id="toast"></div>
+
+  <!-- 脚本 -->
+  <script src="js/quiz-data.js"></script>
+  <script src="js/history.js"></script>
+  <script src="js/results.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
